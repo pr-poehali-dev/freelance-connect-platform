@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
@@ -100,6 +101,7 @@ const mockServices: Service[] = [
 ];
 
 const Index = () => {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Все');
 
@@ -203,7 +205,7 @@ const Index = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredServices.map((service) => (
-              <Card key={service.id} className="hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 group overflow-hidden border-2 border-transparent hover:border-purple-200">
+              <Card key={service.id} className="hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 group overflow-hidden border-2 border-transparent hover:border-purple-200 cursor-pointer" onClick={() => navigate(`/service/${service.id}`)}>
                 <div className="relative h-48 overflow-hidden bg-gradient-to-br from-purple-100 to-pink-100">
                   <div className="w-full h-full flex items-center justify-center">
                     <Icon name="Image" size={64} className="text-purple-300" />
@@ -221,7 +223,7 @@ const Index = () => {
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
-                      <p className="font-semibold text-gray-800">{service.seller.name}</p>
+                      <p className="font-semibold text-gray-800 cursor-pointer hover:text-purple-600" onClick={(e) => { e.stopPropagation(); navigate('/freelancer/1'); }}>{service.seller.name}</p>
                       <Badge variant="secondary" className="text-xs bg-gradient-to-r from-purple-500 to-pink-500 text-white">
                         {service.seller.level}
                       </Badge>
