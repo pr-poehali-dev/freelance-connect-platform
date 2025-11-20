@@ -104,13 +104,27 @@ const Index = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Все');
+  const [priceRange, setPriceRange] = useState([0, 20000]);
+  const [minRating, setMinRating] = useState(0);
+  const [maxDeliveryDays, setMaxDeliveryDays] = useState(30);
+  const [showFilters, setShowFilters] = useState(false);
 
   const filteredServices = mockServices.filter(service => {
     const matchesSearch = service.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          service.description.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === 'Все' || service.category === selectedCategory;
-    return matchesSearch && matchesCategory;
+    const matchesPrice = service.price >= priceRange[0] && service.price <= priceRange[1];
+    const matchesRating = service.rating >= minRating;
+    const deliveryDays = parseInt(service.deliveryTime);
+    const matchesDelivery = isNaN(deliveryDays) || deliveryDays <= maxDeliveryDays;
+    return matchesSearch && matchesCategory && matchesPrice && matchesRating && matchesDelivery;
   });
+
+  const resetFilters = () => {
+    setPriceRange([0, 20000]);
+    setMinRating(0);
+    setMaxDeliveryDays(30);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50">
@@ -133,9 +147,18 @@ const Index = () => {
               <a href="#blog" className="text-gray-700 hover:text-purple-600 transition-colors">Блог</a>
             </nav>
             <div className="flex items-center gap-3">
-              <Button variant="ghost" className="hidden md:flex">Войти</Button>
+              <Button variant="ghost" onClick={() => navigate('/orders')} className="hidden md:flex">
+                <Icon name="Package" size={18} className="mr-2" />
+                Мои заказы
+              </Button>
+              <Button variant="ghost" onClick={() => navigate('/cart')} className="relative">
+                <Icon name="ShoppingCart" size={20} />
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs rounded-full flex items-center justify-center">
+                  2
+                </span>
+              </Button>
               <Button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white">
-                Регистрация
+                Войти
               </Button>
             </div>
           </div>
@@ -192,16 +215,93 @@ const Index = () => {
       {/* Services Section */}
       <section id="services" className="py-12 px-4">
         <div className="container mx-auto">
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between mb-6">
             <h2 className="text-3xl font-bold text-gray-800">
               {selectedCategory === 'Все' ? 'Популярные услуги' : selectedCategory}
             </h2>
-            {selectedCategory !== 'Все' && (
-              <Button variant="ghost" onClick={() => setSelectedCategory('Все')}>
-                Показать все
+            <div className="flex items-center gap-3">
+              {selectedCategory !== 'Все' && (
+                <Button variant="ghost" onClick={() => setSelectedCategory('Все')}>
+                  Показать все
+                </Button>
+              )}
+              <Button
+                variant="outline"
+                onClick={() => setShowFilters(!showFilters)}
+                className="flex items-center gap-2"
+              >
+                <Icon name="SlidersHorizontal" size={18} />
+                Фильтры
               </Button>
-            )}
+            </div>
           </div>
+
+          {showFilters && (
+            <Card className="mb-6 p-6 bg-gradient-to-br from-purple-50 to-pink-50">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                  <label className="text-sm font-semibold mb-3 block">
+                    Цена: {priceRange[0].toLocaleString()} - {priceRange[1].toLocaleString()} ₽
+                  </label>
+                  <div className="space-y-2">
+                    <input
+                      type="range"
+                      min="0"
+                      max="20000"
+                      step="1000"
+                      value={priceRange[1]}
+                      onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)])}
+                      className="w-full"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold mb-3 block">
+                    Рейтинг от {minRating.toFixed(1)} ⭐
+                  </label>
+                  <div className="space-y-2">
+                    <input
+                      type="range"
+                      min="0"
+                      max="5"
+                      step="0.5"
+                      value={minRating}
+                      onChange={(e) => setMinRating(parseFloat(e.target.value))}
+                      className="w-full"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold mb-3 block">
+                    Срок до {maxDeliveryDays} дней
+                  </label>
+                  <div className="space-y-2">
+                    <input
+                      type="range"
+                      min="1"
+                      max="30"
+                      step="1"
+                      value={maxDeliveryDays}
+                      onChange={(e) => setMaxDeliveryDays(parseInt(e.target.value))}
+                      className="w-full"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between mt-4 pt-4 border-t">
+                <p className="text-sm text-gray-600">
+                  Найдено услуг: <span className="font-semibold">{filteredServices.length}</span>
+                </p>
+                <Button variant="ghost" onClick={resetFilters} size="sm">
+                  <Icon name="RotateCcw" size={16} className="mr-2" />
+                  Сбросить фильтры
+                </Button>
+              </div>
+            </Card>
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredServices.map((service) => (
